@@ -178,21 +178,22 @@ function PublishedDiff({ draft, published, loading }: { draft: SeoValue; publish
 
 /** Live site scan panel — fetches rendered meta tags and diffs against the current draft */
 function LiveScanPanel({
-	slug,
+	path,
 	scanning,
 	result,
 	error,
 	draft,
 	onScan,
 }: {
-	slug: string | undefined
+	/** The resolved page path that will actually be scanned, e.g. `/typefaces/summerford` */
+	path: string | undefined
 	scanning: boolean
 	result: SeoScanResult | null
 	error: string | null
 	draft: SeoValue
 	onScan: () => void
 }) {
-	const canScan = Boolean(slug) && !scanning
+	const canScan = Boolean(path) && !scanning
 
 	return (
 		<Card padding={4} radius={2} tone="default" border>
@@ -201,7 +202,7 @@ function LiveScanPanel({
 					<Stack space={1}>
 						<Text size={1} weight="semibold">Live site scan</Text>
 						<Text size={1} muted>
-							{slug ? `/${slug}` : 'No slug — save the document first'}
+							{path ?? 'No slug — save the document first'}
 						</Text>
 					</Stack>
 					<Button
@@ -286,13 +287,16 @@ export function createSeoEvaluatorInput(options: SeoEvaluatorOptions = {}) {
 		const [scanning, setScanning] = useState(false)
 		const [scanError, setScanError] = useState<string | null>(null)
 
+		// The path the scan targets — shown in the panel and used for the fetch, so the
+		// label can never drift from the URL actually requested.
+		const scanPath = slug ? urlFromSlug(slug) : undefined
+
 		const runScan = useCallback(async () => {
-			if (!siteUrl || !slug) return
+			if (!siteUrl || !scanPath) return
 			setScanError(null)
 			setScanning(true)
 			try {
-				const path = urlFromSlug(slug)
-				const res = await fetch(`${siteUrl}/api/seo-scan?path=${encodeURIComponent(path)}`)
+				const res = await fetch(`${siteUrl}/api/seo-scan?path=${encodeURIComponent(scanPath)}`)
 				if (!res.ok) throw new Error(`HTTP ${res.status}`)
 				setScanResult(await res.json())
 			} catch (err) {
@@ -300,7 +304,7 @@ export function createSeoEvaluatorInput(options: SeoEvaluatorOptions = {}) {
 			} finally {
 				setScanning(false)
 			}
-		}, [slug])
+		}, [scanPath])
 
 		return (
 			<Stack space={4}>
@@ -309,7 +313,7 @@ export function createSeoEvaluatorInput(options: SeoEvaluatorOptions = {}) {
 				<PublishedDiff draft={value} published={publishedSeo} loading={publishedLoading} />
 				{siteUrl && (
 					<LiveScanPanel
-						slug={slug}
+						path={scanPath}
 						scanning={scanning}
 						result={scanResult}
 						error={scanError}
