@@ -1,6 +1,6 @@
 {
   "name": "@liiift-studio/sanity-typeface-seo",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "Standalone Sanity SEO field definitions for typeface documents — shared social/SEO object across foundries",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -51,6 +51,6 @@
     "vitest": "^4.1.5"
   },
   "dependencies": {
-    "@liiift-studio/sanity-ui-compat": "^0.1.0"
+    "@liiift-studio/sanity-ui-compat": "^0.1.2"
   }
 }
