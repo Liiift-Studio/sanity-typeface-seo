@@ -1,6 +1,6 @@
 /** Custom Sanity input for SEO fields — quality checklist, published diff, and optional live site scan */
 import React, { useState, useEffect, useCallback } from 'react'
-import { Box, Button, Card, Flex, Spinner, Stack, Text } from '@sanity/ui'
+import { Box, Button, Card, Flex, Spinner, Stack, Text } from '@liiift-studio/sanity-ui-compat'
 import { useClient, useFormValue, type ObjectInputProps } from 'sanity'
 import type { SeoValue, SeoScanResult, SeoEvaluatorOptions } from './types'
 
