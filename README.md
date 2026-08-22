@@ -2,7 +2,8 @@
 
 [![npm version](https://img.shields.io/npm/v/@liiift-studio/sanity-typeface-seo.svg)](https://www.npmjs.com/package/@liiift-studio/sanity-typeface-seo)
 [![license](https://img.shields.io/npm/l/@liiift-studio/sanity-typeface-seo.svg)](https://github.com/Liiift-Studio/sanity-typeface-seo)
-[![sanity](https://img.shields.io/badge/sanity-v3-red.svg)](https://www.sanity.io)
+[![Sanity Studio v3 – v6](https://img.shields.io/badge/Sanity%20Studio-v3%20%E2%80%93%20v6-f03e2f.svg)](#peer-dependencies)
+[![tests](https://img.shields.io/badge/tests-12%20passing-brightgreen.svg)](#verification-status)
 
 Standalone Sanity SEO field definitions for typeface documents. Provides a shared social/SEO object, a visual SEO score evaluator, and optional marketplace link fields — reusable across any foundry studio.
 
@@ -174,11 +175,36 @@ type SeoScanResult = {
 
 ### Peer Dependencies
 
-| Package | Version |
-|---|---|
-| `@sanity/ui` | `>=2` |
-| `react` | `>=18` |
-| `sanity` | `>=3` |
+| Package | Declared range | Majors supported |
+|---|---|---|
+| `sanity` | `>=3 <7` | Studio **v3 · v4 · v5 · v6** |
+| `@sanity/ui` | `>=2 <5` | v2 · v3 · v4 |
+| `react` | `>=18` | 18 · 19 |
+
+The package also carries one runtime dependency, [`@liiift-studio/sanity-ui-compat`](https://www.npmjs.com/package/@liiift-studio/sanity-ui-compat), which is what makes the four-major span possible (below).
+
+#### Why `@sanity/ui` stops at `<5` when `sanity` goes to `<7`
+
+Not a typo: **Studio v6 ships `@sanity/ui` v4, not v5.** The `@sanity/ui` cap tracks that library's own major, which lags the Studio's — so `>=2 <5` is exactly right for a package supporting Studio v3 through v6.
+
+#### How one build spans four Studio majors
+
+`@sanity/ui` v4 moved `Tooltip`, `Menu`, `MenuButton`, `MenuItem`, `Code`, `Popover`, `Autocomplete`, `Toast` and `useToast` to subpath entries, and `@sanity/icons` v5 removed every named `*Icon` export. Critically, **both packages still _declare_ the removed names in their `.d.ts` files, typed `never`** — so a named import type-checks, builds, and is `undefined` at runtime.
+
+The evaluator input therefore imports **no `@sanity/ui` symbol directly**; everything routes through the compat layer, which resolves the installed namespace at runtime:
+
+```typescript
+import { Box, Button, Card, Flex, Spinner, Stack, Text } from '@liiift-studio/sanity-ui-compat'
+```
+
+If you fork or patch this package, keep it that way — direct named imports reintroduce a failure that no build step will catch.
+
+### Verification status
+
+- ✅ `npm test` — **12 tests passing** (vitest), covering the schema field factory.
+- ✅ `npm run build` (tsup → ESM + CJS + types) succeeds.
+- ✅ Running in three in-house Studios (Darden, TDF, MCKL).
+- ❌ **Not** exercised in a running Sanity v6 Studio beyond those. v6 support rests on the declared peer ranges and the compat layer rather than a certified v6 test pass.
 
 ## License
 
