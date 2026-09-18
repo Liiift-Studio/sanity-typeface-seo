@@ -1,4 +1,7 @@
 /** Factory for the SEO/social Sanity schema field — configurable per document type */
+import { resolveSeoImageSource } from './seoImage'
+import type { SeoImageSource } from './seoImage'
+import type { SeoValue } from './types'
 
 /** Options for createSeoField — all fields default to their most common value */
 export interface CreateSeoFieldOptions {
@@ -11,13 +14,22 @@ export interface CreateSeoFieldOptions {
 	/** Include Darden-specific marketplace links (Adobe Fonts, Font Stand). Default: false */
 	marketplaceLinks?: boolean
 	/**
-	 * Add a Sanity-hosted image field (`sanityImage`) beside the Cloudinary `image` field, for studios
-	 * whose artwork already lives in the Sanity media library. Both fields stay: a field holds one
-	 * type, and existing Cloudinary values must keep validating. Consumers should prefer
-	 * `sanityImage` and fall back to `image`. Default: false
+	 * Let editors choose where the share image is hosted. Adds an `imageSource` select ("Sanity" /
+	 * "Cloudinary") and a Sanity `sanityImage` field; only the selected image input is shown. Both
+	 * image fields exist underneath — a Sanity field holds one type, and existing Cloudinary values
+	 * must keep validating. Consumers read the source with `resolveSeoImageSource`. Default: false
 	 */
 	sanityImage?: boolean
+	/**
+	 * With `sanityImage` on: the source preselected on new documents, and assumed for a document
+	 * that has neither a selection nor an image. Default: 'sanity'
+	 */
+	defaultImageSource?: SeoImageSource
 }
+
+/** Editor-facing description shared by both image inputs — only one is ever visible at a time */
+const IMAGE_DESCRIPTION =
+	'This image is used when the page is shared on social media. Falls back to the sitewide default if not set.'
 
 /** Creates a configurable SEO/social Sanity object field with the given options */
 export function createSeoField(options: CreateSeoFieldOptions = {}) {
@@ -27,6 +39,7 @@ export function createSeoField(options: CreateSeoFieldOptions = {}) {
 		noIndex = false,
 		marketplaceLinks = false,
 		sanityImage = false,
+		defaultImageSource = 'sanity',
 	} = options
 
 	const fields: object[] = []
@@ -49,22 +62,46 @@ export function createSeoField(options: CreateSeoFieldOptions = {}) {
 	})
 
 	if (sanityImage) {
+		// One select, one visible image input. Both image fields exist underneath because a Sanity
+		// field holds a single type; `hidden` shows only the one the select points at. Switching
+		// the select never clears the other field, so a change of mind loses nothing.
+		fields.push({
+			title: 'Image source',
+			name: 'imageSource',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Sanity', value: 'sanity' },
+					{ title: 'Cloudinary', value: 'cloudinary' },
+				],
+				layout: 'radio',
+				direction: 'horizontal',
+			},
+			initialValue: defaultImageSource,
+			description: 'Where the social share image is hosted. Only the selected image is used.',
+		})
 		fields.push({
 			title: 'Image',
 			name: 'sanityImage',
 			type: 'image',
 			options: { hotspot: true },
-			description: 'This image is used when the page is shared on social media. Pick or upload it from the Sanity media library. Takes priority over the Cloudinary image below. Falls back to the sitewide default if neither is set.',
+			description: IMAGE_DESCRIPTION,
+			hidden: ({ parent }: { parent?: SeoValue }) =>
+				resolveSeoImageSource(parent, defaultImageSource) !== 'sanity',
 		})
 	}
 
 	fields.push({
-		title: sanityImage ? 'Image (Cloudinary)' : 'Image',
+		title: 'Image',
 		name: 'image',
 		type: 'cloudinary.asset',
-		description: sanityImage
-			? 'Used only when no Sanity image is set above.'
-			: 'This image is used when the page is shared on social media. Falls back to the sitewide default if not set.',
+		description: IMAGE_DESCRIPTION,
+		...(sanityImage
+			? {
+				hidden: ({ parent }: { parent?: SeoValue }) =>
+					resolveSeoImageSource(parent, defaultImageSource) !== 'cloudinary',
+			}
+			: {}),
 	})
 
 	if (marketplaceLinks) {

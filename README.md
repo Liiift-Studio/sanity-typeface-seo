@@ -88,33 +88,49 @@ const customSeoField = createSeoField({
 | `canonical` | `false` | `canonical` URL field |
 | `noIndex` | `false` | `noIndex` boolean (emits `noindex, nofollow`) |
 | `marketplaceLinks` | `false` | `adobeLink` + `fontStandLink` string fields |
-| `sanityImage` | `false` | `sanityImage` (Sanity `image`, hotspot on) beside the Cloudinary `image` |
+| `sanityImage` | `false` | `imageSource` select ("Sanity" / "Cloudinary") + `sanityImage` (Sanity `image`, hotspot on); only the selected image input shows |
+| `defaultImageSource` | `'sanity'` | With `sanityImage`: the source preselected on new documents |
 
 The field always includes `keywords` (string), `image` (`cloudinary.asset`), and `description` (text).
 
-#### Sanity-hosted share images
+#### Choosing where the share image is hosted
 
 `image` is a `cloudinary.asset`. A studio whose artwork already lives in the Sanity media library can
-pass `sanityImage: true` to add a second field, `sanityImage`, of type `image`. Both fields stay — a
-Sanity field holds one type, and existing Cloudinary values must keep validating — so the consuming
-site resolves them in order, Sanity first:
+pass `sanityImage: true`. Editors then get an **Image source** select and a single image input that
+follows it — a Sanity image picker or the Cloudinary picker.
+
+Underneath there are still two fields, `sanityImage` (`image`) and `image` (`cloudinary.asset`),
+because a Sanity field holds one type and existing Cloudinary values must keep validating. `hidden`
+shows only the selected one. Switching the select never clears the other field, so a change of mind
+loses nothing — but **only the selected image is used**.
+
+Documents saved before the select existed have no `imageSource`. They resolve to whichever image
+they hold (Sanity first), so an existing Cloudinary image stays visible and in use untouched.
+
+On the consuming site, project all three and resolve with the same rule:
 
 ```groq
 social{
 	...,
+	imageSource,
 	sanityImage,                       // keep crop + hotspot for @sanity/image-url
 	"image": image{ secure_url, url }  // Cloudinary: NOT image.asset-> (it has no asset ref)
 }
 ```
 
 ```js
-const shareImage = social?.sanityImage?.asset
-	? urlFor(social.sanityImage).width(1200).height(630).fit('crop').url()
+// Same rule as the exported resolveSeoImageSource(value)
+const source = ['sanity', 'cloudinary'].includes(social?.imageSource)
+	? social.imageSource
+	: social?.sanityImage?.asset ? 'sanity' : social?.image ? 'cloudinary' : 'sanity'
+
+const shareImage = source === 'sanity'
+	? social?.sanityImage?.asset && urlFor(social.sanityImage).width(1200).height(630).fit('crop').url()
 	: social?.image?.secure_url
 ```
 
-`hasSeoImage(value)` is exported for the same either-field check; the evaluator uses it, so its
-"Social image" row is satisfied by whichever field is set.
+`resolveSeoImageSource(value, fallback?)` and `hasSeoImage(value)` are exported. The evaluator uses
+`hasSeoImage`, so its "Social image" row reflects the selected source only.
 
 ### SEO evaluator component
 
