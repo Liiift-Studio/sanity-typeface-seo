@@ -88,49 +88,50 @@ const customSeoField = createSeoField({
 | `canonical` | `false` | `canonical` URL field |
 | `noIndex` | `false` | `noIndex` boolean (emits `noindex, nofollow`) |
 | `marketplaceLinks` | `false` | `adobeLink` + `fontStandLink` string fields |
-| `sanityImage` | `false` | `imageSource` select ("Sanity" / "Cloudinary") + `sanityImage` (Sanity `image`, hotspot on); only the selected image input shows |
-| `defaultImageSource` | `'sanity'` | With `sanityImage`: the source preselected on new documents |
+| `sanityImage` | `false` | `sanityImage` — an ordinary Sanity `image` (hotspot on). The Cloudinary `image` becomes a legacy field, shown only where it already has a value |
 
 The field always includes `keywords` (string), `image` (`cloudinary.asset`), and `description` (text).
 
-#### Choosing where the share image is hosted
+#### A Sanity share image (that can still come from Cloudinary)
 
 `image` is a `cloudinary.asset`. A studio whose artwork already lives in the Sanity media library can
-pass `sanityImage: true`. Editors then get an **Image source** select and a single image input that
-follows it — a Sanity image picker or the Cloudinary picker.
+pass `sanityImage: true` to make the share image an ordinary Sanity `image` field, `sanityImage`.
 
-Underneath there are still two fields, `sanityImage` (`image`) and `image` (`cloudinary.asset`),
-because a Sanity field holds one type and existing Cloudinary values must keep validating. `hidden`
-shows only the selected one. Switching the select never clears the other field, so a change of mind
-loses nothing — but **only the selected image is used**.
+There is no source select, because a Sanity image input already has one: its **Select** menu lists
+every asset source the Studio registers — upload, the media library, and Cloudinary when
+`cloudinaryAssetSourcePlugin()` from `sanity-plugin-cloudinary` is installed. That source copies the
+picked file into Sanity and stores it as a normal `sanity.imageAsset`, so whichever way the editor
+picks, the value is a Sanity image: crop, hotspot and sizing all work the same.
 
-Documents saved before the select existed have no `imageSource`. They resolve to whichever image
-they hold (Sanity first), so an existing Cloudinary image stays visible and in use untouched.
+The Cloudinary `image` field cannot be retyped — other studios use it, and existing values must keep
+validating — so it stays in the schema as a **legacy fallback**, titled "Image (legacy Cloudinary)".
+It is visible only on documents that already hold a value, and never offered on the rest. To retire
+one, pick the image in the field above, then clear the legacy one.
 
-On the consuming site, project all three and resolve with the same rule:
+On the consuming site, project both and read the Sanity image first:
 
 ```groq
 social{
 	...,
-	imageSource,
 	sanityImage,                       // keep crop + hotspot for @sanity/image-url
 	"image": image{ secure_url, url }  // Cloudinary: NOT image.asset-> (it has no asset ref)
 }
 ```
 
 ```js
-// Same rule as the exported resolveSeoImageSource(value)
-const source = ['sanity', 'cloudinary'].includes(social?.imageSource)
-	? social.imageSource
-	: social?.sanityImage?.asset ? 'sanity' : social?.image ? 'cloudinary' : 'sanity'
-
-const shareImage = source === 'sanity'
-	? social?.sanityImage?.asset && urlFor(social.sanityImage).width(1200).height(630).fit('crop').url()
+const shareImage = social?.sanityImage?.asset
+	? urlFor(social.sanityImage).width(1200).height(630).fit('crop').url()
 	: social?.image?.secure_url
 ```
 
-`resolveSeoImageSource(value, fallback?)` and `hasSeoImage(value)` are exported. The evaluator uses
-`hasSeoImage`, so its "Social image" row reflects the selected source only.
+`hasSeoImage(value)` and `resolveSeoImageSource(value, fallback?)` are exported for the same
+either-field check. The evaluator uses `hasSeoImage`, so its "Social image" row is satisfied by
+whichever field holds an image.
+
+> **1.6.0 only:** that release used an `imageSource` radio ("Sanity" / "Cloudinary") with one
+> visible input instead. 1.7.0 removes it, along with the `defaultImageSource` option and the
+> `SEO_IMAGE_SOURCES` export. A document saved under 1.6.0 may carry a stray `imageSource` string;
+> it is ignored, and the Studio will flag it as an unknown field until it is unset.
 
 ### SEO evaluator component
 

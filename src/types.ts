@@ -4,11 +4,9 @@
 export type SeoValue = {
 	title?: string
 	keywords?: string
-	/** Cloudinary asset. The only image unless `sanityImage` is on; then used when imageSource is 'cloudinary' */
+	/** Cloudinary asset. The share image by default; with `sanityImage` on, the legacy fallback behind it */
 	image?: unknown
-	/** Editor's choice of image host — only present when createSeoField({ sanityImage: true }). Read via resolveSeoImageSource */
-	imageSource?: 'sanity' | 'cloudinary'
-	/** Sanity-hosted image — only present when createSeoField({ sanityImage: true }). Used when imageSource is 'sanity' */
+	/** Sanity image — only present when createSeoField({ sanityImage: true }). Read before `image` */
 	sanityImage?: { asset?: { _ref?: string }; [key: string]: unknown }
 	description?: string
 	/** Optional canonical URL override — only present when createSeoField({ canonical: true }) */

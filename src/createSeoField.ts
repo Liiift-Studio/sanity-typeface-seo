@@ -1,6 +1,4 @@
 /** Factory for the SEO/social Sanity schema field — configurable per document type */
-import { resolveSeoImageSource } from './seoImage'
-import type { SeoImageSource } from './seoImage'
 import type { SeoValue } from './types'
 
 /** Options for createSeoField — all fields default to their most common value */
@@ -14,22 +12,22 @@ export interface CreateSeoFieldOptions {
 	/** Include Darden-specific marketplace links (Adobe Fonts, Font Stand). Default: false */
 	marketplaceLinks?: boolean
 	/**
-	 * Let editors choose where the share image is hosted. Adds an `imageSource` select ("Sanity" /
-	 * "Cloudinary") and a Sanity `sanityImage` field; only the selected image input is shown. Both
-	 * image fields exist underneath — a Sanity field holds one type, and existing Cloudinary values
-	 * must keep validating. Consumers read the source with `resolveSeoImageSource`. Default: false
+	 * Make the share image an ordinary Sanity `image` field, `sanityImage`. Its built-in Select menu
+	 * offers upload, the media library and — where cloudinaryAssetSourcePlugin() is registered —
+	 * Cloudinary, so one field covers every source. The Cloudinary `image` field stays in the schema
+	 * as a legacy fallback, visible only on documents that already hold a value. Consumers read
+	 * `sanityImage` first, then `image`. Default: false
 	 */
 	sanityImage?: boolean
-	/**
-	 * With `sanityImage` on: the source preselected on new documents, and assumed for a document
-	 * that has neither a selection nor an image. Default: 'sanity'
-	 */
-	defaultImageSource?: SeoImageSource
 }
 
-/** Editor-facing description shared by both image inputs — only one is ever visible at a time */
+/** Editor-facing description of the share image input */
 const IMAGE_DESCRIPTION =
 	'This image is used when the page is shared on social media. Falls back to the sitewide default if not set.'
+
+/** Editor-facing description of the Cloudinary field once `sanityImage` has made it a legacy fallback */
+const LEGACY_IMAGE_DESCRIPTION =
+	'Set before the Image field above existed, and used only while that field is empty. To retire it, pick the image above, then clear this one.'
 
 /** Creates a configurable SEO/social Sanity object field with the given options */
 export function createSeoField(options: CreateSeoFieldOptions = {}) {
@@ -39,7 +37,6 @@ export function createSeoField(options: CreateSeoFieldOptions = {}) {
 		noIndex = false,
 		marketplaceLinks = false,
 		sanityImage = false,
-		defaultImageSource = 'sanity',
 	} = options
 
 	const fields: object[] = []
@@ -62,45 +59,29 @@ export function createSeoField(options: CreateSeoFieldOptions = {}) {
 	})
 
 	if (sanityImage) {
-		// One select, one visible image input. Both image fields exist underneath because a Sanity
-		// field holds a single type; `hidden` shows only the one the select points at. Switching
-		// the select never clears the other field, so a change of mind loses nothing.
-		fields.push({
-			title: 'Image source',
-			name: 'imageSource',
-			type: 'string',
-			options: {
-				list: [
-					{ title: 'Sanity', value: 'sanity' },
-					{ title: 'Cloudinary', value: 'cloudinary' },
-				],
-				layout: 'radio',
-				direction: 'horizontal',
-			},
-			initialValue: defaultImageSource,
-			description: 'Where the social share image is hosted. Only the selected image is used.',
-		})
+		// One ordinary Sanity image. Its built-in Select menu already offers every source the
+		// Studio registers — upload, the media library, and Cloudinary when
+		// cloudinaryAssetSourcePlugin() is installed (that source copies the pick into Sanity as a
+		// normal image asset). So there is nothing to choose between here: no source select needed.
 		fields.push({
 			title: 'Image',
 			name: 'sanityImage',
 			type: 'image',
 			options: { hotspot: true },
 			description: IMAGE_DESCRIPTION,
-			hidden: ({ parent }: { parent?: SeoValue }) =>
-				resolveSeoImageSource(parent, defaultImageSource) !== 'sanity',
 		})
 	}
 
+	// The Cloudinary field cannot be retyped — other studios use it, and existing values must keep
+	// validating. With sanityImage on it becomes a legacy field: shown only on documents that
+	// already hold a value, so nothing vanishes, and never offered on the rest.
 	fields.push({
-		title: 'Image',
+		title: sanityImage ? 'Image (legacy Cloudinary)' : 'Image',
 		name: 'image',
 		type: 'cloudinary.asset',
-		description: IMAGE_DESCRIPTION,
+		description: sanityImage ? LEGACY_IMAGE_DESCRIPTION : IMAGE_DESCRIPTION,
 		...(sanityImage
-			? {
-				hidden: ({ parent }: { parent?: SeoValue }) =>
-					resolveSeoImageSource(parent, defaultImageSource) !== 'cloudinary',
-			}
+			? { hidden: ({ parent }: { parent?: SeoValue }) => !parent?.image }
 			: {}),
 	})
 
