@@ -10,6 +10,13 @@ export interface CreateSeoFieldOptions {
 	noIndex?: boolean
 	/** Include Darden-specific marketplace links (Adobe Fonts, Font Stand). Default: false */
 	marketplaceLinks?: boolean
+	/**
+	 * Add a Sanity-hosted image field (`sanityImage`) beside the Cloudinary `image` field, for studios
+	 * whose artwork already lives in the Sanity media library. Both fields stay: a field holds one
+	 * type, and existing Cloudinary values must keep validating. Consumers should prefer
+	 * `sanityImage` and fall back to `image`. Default: false
+	 */
+	sanityImage?: boolean
 }
 
 /** Creates a configurable SEO/social Sanity object field with the given options */
@@ -19,6 +26,7 @@ export function createSeoField(options: CreateSeoFieldOptions = {}) {
 		canonical = false,
 		noIndex = false,
 		marketplaceLinks = false,
+		sanityImage = false,
 	} = options
 
 	const fields: object[] = []
@@ -40,11 +48,23 @@ export function createSeoField(options: CreateSeoFieldOptions = {}) {
 		description: 'An example would be "typography, font, typeface, type, custom font, custom typeface, type foundry, new fonts".',
 	})
 
+	if (sanityImage) {
+		fields.push({
+			title: 'Image',
+			name: 'sanityImage',
+			type: 'image',
+			options: { hotspot: true },
+			description: 'This image is used when the page is shared on social media. Pick or upload it from the Sanity media library. Takes priority over the Cloudinary image below. Falls back to the sitewide default if neither is set.',
+		})
+	}
+
 	fields.push({
-		title: 'Image',
+		title: sanityImage ? 'Image (Cloudinary)' : 'Image',
 		name: 'image',
 		type: 'cloudinary.asset',
-		description: 'This image is used when the page is shared on social media. Falls back to the sitewide default if not set.',
+		description: sanityImage
+			? 'Used only when no Sanity image is set above.'
+			: 'This image is used when the page is shared on social media. Falls back to the sitewide default if not set.',
 	})
 
 	if (marketplaceLinks) {

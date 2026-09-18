@@ -88,8 +88,33 @@ const customSeoField = createSeoField({
 | `canonical` | `false` | `canonical` URL field |
 | `noIndex` | `false` | `noIndex` boolean (emits `noindex, nofollow`) |
 | `marketplaceLinks` | `false` | `adobeLink` + `fontStandLink` string fields |
+| `sanityImage` | `false` | `sanityImage` (Sanity `image`, hotspot on) beside the Cloudinary `image` |
 
 The field always includes `keywords` (string), `image` (`cloudinary.asset`), and `description` (text).
+
+#### Sanity-hosted share images
+
+`image` is a `cloudinary.asset`. A studio whose artwork already lives in the Sanity media library can
+pass `sanityImage: true` to add a second field, `sanityImage`, of type `image`. Both fields stay — a
+Sanity field holds one type, and existing Cloudinary values must keep validating — so the consuming
+site resolves them in order, Sanity first:
+
+```groq
+social{
+	...,
+	sanityImage,                       // keep crop + hotspot for @sanity/image-url
+	"image": image{ secure_url, url }  // Cloudinary: NOT image.asset-> (it has no asset ref)
+}
+```
+
+```js
+const shareImage = social?.sanityImage?.asset
+	? urlFor(social.sanityImage).width(1200).height(630).fit('crop').url()
+	: social?.image?.secure_url
+```
+
+`hasSeoImage(value)` is exported for the same either-field check; the evaluator uses it, so its
+"Social image" row is satisfied by whichever field is set.
 
 ### SEO evaluator component
 

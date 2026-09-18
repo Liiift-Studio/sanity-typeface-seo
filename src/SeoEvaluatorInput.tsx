@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Box, Button, Card, Flex, Spinner, Stack, Text } from '@liiift-studio/sanity-ui-compat'
 import { useClient, useFormValue, type ObjectInputProps } from 'sanity'
 import type { SeoValue, SeoScanResult, SeoEvaluatorOptions } from './types'
+import { hasSeoImage } from './seoImage'
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
@@ -87,7 +88,7 @@ function SeoChecklist({ value }: { value: SeoValue }) {
 	const titleStatus = charScore(value.title, 50, 60)
 	const descStatus = charScore(value.description, 150, 160)
 	const keywordsStatus: CheckStatus = value.keywords ? 'good' : 'empty'
-	const imageStatus: CheckStatus = value.image ? 'good' : 'empty'
+	const imageStatus: CheckStatus = hasSeoImage(value) ? 'good' : 'empty'
 	const score = [titleStatus, descStatus, keywordsStatus, imageStatus].filter(s => s === 'good').length
 	const scoreTone = score === 4 ? 'positive' : score >= 2 ? 'caution' : 'critical'
 
@@ -152,7 +153,7 @@ function PublishedDiff({ draft, published, loading }: { draft: SeoValue; publish
 		{ label: 'Title', live: published.title ?? null, draft: draft.title ?? null },
 		{ label: 'Description', live: published.description ?? null, draft: draft.description ?? null },
 		{ label: 'Keywords', live: published.keywords ?? null, draft: draft.keywords ?? null },
-		{ label: 'Image', live: published.image ? 'Set' : null, draft: draft.image ? 'Set' : null },
+		{ label: 'Image', live: hasSeoImage(published) ? 'Set' : null, draft: hasSeoImage(draft) ? 'Set' : null },
 	]
 
 	const changedCount = fields.filter(f => f.live !== f.draft).length
@@ -237,7 +238,7 @@ function LiveScanPanel({
 						<DiffRow
 							label="OG Image"
 							live={result.ogImage ? 'Set' : null}
-							draft={draft.image ? 'Set' : null}
+							draft={hasSeoImage(draft) ? 'Set' : null}
 						/>
 					</Stack>
 				)}
