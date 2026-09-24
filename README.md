@@ -1,7 +1,7 @@
 # sanity-typeface-seo
 
-[![npm version](https://img.shields.io/npm/v/@liiift-studio/sanity-typeface-seo.svg)](https://www.npmjs.com/package/@liiift-studio/sanity-typeface-seo)
-[![license](https://img.shields.io/npm/l/@liiift-studio/sanity-typeface-seo.svg)](https://github.com/Liiift-Studio/sanity-typeface-seo)
+[![npm version](https://img.shields.io/npm/v/@overpunch/sanity-typeface-seo.svg)](https://www.npmjs.com/package/@overpunch/sanity-typeface-seo)
+[![license](https://img.shields.io/npm/l/@overpunch/sanity-typeface-seo.svg)](https://github.com/Liiift-Studio/sanity-typeface-seo)
 [![Sanity Studio v3 – v6](https://img.shields.io/badge/Sanity%20Studio-v3%20%E2%80%93%20v6-f03e2f.svg)](#peer-dependencies)
 [![tests](https://img.shields.io/badge/tests-12%20passing-brightgreen.svg)](#verification-status)
 
@@ -42,7 +42,7 @@ flowchart TD
 ## Install
 
 ```bash
-npm install @liiift-studio/sanity-typeface-seo
+npm install @overpunch/sanity-typeface-seo
 ```
 
 ## Usage
@@ -53,9 +53,9 @@ npm install @liiift-studio/sanity-typeface-seo
 
 ```typescript
 import { defineType, defineField } from 'sanity'
-import { seoField } from '@liiift-studio/sanity-typeface-seo'
+import { seoField } from '@overpunch/sanity-typeface-seo'
 // Or, with marketplace links (Adobe Fonts, Font Stand):
-import { seoFieldWithLinks } from '@liiift-studio/sanity-typeface-seo'
+import { seoFieldWithLinks } from '@overpunch/sanity-typeface-seo'
 
 export const typefaceSchema = defineType({
 	name: 'typeface',
@@ -72,7 +72,7 @@ export const typefaceSchema = defineType({
 `createSeoField(options)` returns a Sanity object field definition. Every option is off by default except `title`:
 
 ```typescript
-import { createSeoField } from '@liiift-studio/sanity-typeface-seo'
+import { createSeoField } from '@overpunch/sanity-typeface-seo'
 
 const customSeoField = createSeoField({
 	title: true,            // per-page title field (default: true)
@@ -139,7 +139,7 @@ whichever field holds an image.
 
 ```typescript
 import { defineField } from 'sanity'
-import { createSeoField, createSeoEvaluatorInput } from '@liiift-studio/sanity-typeface-seo'
+import { createSeoField, createSeoEvaluatorInput } from '@overpunch/sanity-typeface-seo'
 
 const SeoEvaluatorInput = createSeoEvaluatorInput({
 	siteUrl: 'https://dardenstudio.com',        // enables the Live scan tab
@@ -173,7 +173,7 @@ The Live scan panel calls `GET {siteUrl}/api/seo-scan?path=<page-path>` and expe
 
 ```typescript
 // app/api/seo-scan/route.ts (or pages/api/seo-scan.ts)
-import { parseSeoFromHtml } from '@liiift-studio/sanity-typeface-seo'
+import { parseSeoFromHtml } from '@overpunch/sanity-typeface-seo'
 
 export async function GET(req: Request) {
 	const path = new URL(req.url).searchParams.get('path') ?? '/'
@@ -223,7 +223,7 @@ type SeoScanResult = {
 | `@sanity/ui` | `>=2 <5` | v2 · v3 · v4 |
 | `react` | `>=18` | 18 · 19 |
 
-The package also carries one runtime dependency, [`@liiift-studio/sanity-ui-compat`](https://www.npmjs.com/package/@liiift-studio/sanity-ui-compat), which is what makes the four-major span possible (below).
+The package also carries one runtime dependency, [`@overpunch/sanity-ui-compat`](https://www.npmjs.com/package/@overpunch/sanity-ui-compat), which is what makes the four-major span possible (below).
 
 #### Why `@sanity/ui` stops at `<5` when `sanity` goes to `<7`
 
@@ -236,7 +236,7 @@ Not a typo: **Studio v6 ships `@sanity/ui` v4, not v5.** The `@sanity/ui` cap tr
 The evaluator input therefore imports **no `@sanity/ui` symbol directly**; everything routes through the compat layer, which resolves the installed namespace at runtime:
 
 ```typescript
-import { Box, Button, Card, Flex, Spinner, Stack, Text } from '@liiift-studio/sanity-ui-compat'
+import { Box, Button, Card, Flex, Spinner, Stack, Text } from '@overpunch/sanity-ui-compat'
 ```
 
 If you fork or patch this package, keep it that way — direct named imports reintroduce a failure that no build step will catch.
