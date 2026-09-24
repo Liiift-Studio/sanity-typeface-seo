@@ -1,7 +1,7 @@
 # sanity-typeface-seo
 
 [![npm version](https://img.shields.io/npm/v/@overpunch/sanity-typeface-seo.svg)](https://www.npmjs.com/package/@overpunch/sanity-typeface-seo)
-[![license](https://img.shields.io/npm/l/@overpunch/sanity-typeface-seo.svg)](https://github.com/Liiift-Studio/sanity-typeface-seo)
+[![license](https://img.shields.io/npm/l/@overpunch/sanity-typeface-seo.svg)](https://github.com/over-punch/sanity-typeface-seo)
 [![Sanity Studio v3 – v6](https://img.shields.io/badge/Sanity%20Studio-v3%20%E2%80%93%20v6-f03e2f.svg)](#peer-dependencies)
 [![tests](https://img.shields.io/badge/tests-12%20passing-brightgreen.svg)](#verification-status)
 
@@ -164,7 +164,7 @@ export const seoFieldWithEvaluator = defineField({
 3. **Live scan** *(opt-in)* — appears only when `siteUrl` is set; fetches your live page's rendered meta tags and diffs them against the draft. Requires the scan endpoint below.
 
 <!-- TODO(maintainer): capture a screenshot of the evaluator in the running Studio (the three panels with the green/orange/red checklist) and drop it at assets/evaluator-panel.png. Studio UI can't be captured headlessly. Then uncomment:
-![SEO evaluator panel — checklist, published diff, and live scan](https://raw.githubusercontent.com/Liiift-Studio/sanity-typeface-seo/main/assets/evaluator-panel.png?v=1)
+![SEO evaluator panel — checklist, published diff, and live scan](https://raw.githubusercontent.com/over-punch/sanity-typeface-seo/main/assets/evaluator-panel.png?v=1)
 -->
 
 ### Live scan endpoint (`parseSeoFromHtml`)
@@ -250,4 +250,4 @@ If you fork or patch this package, keep it that way — direct named imports rei
 
 ## License
 
-MIT © Liiift Studio. See the [repository](https://github.com/Liiift-Studio/sanity-typeface-seo).
+MIT © Liiift Studio. See the [repository](https://github.com/over-punch/sanity-typeface-seo).
